@@ -2,9 +2,10 @@
 	"schemaVersion": 1,
 	"id": "early-loading-screen-26-1-2",
 	"version": "${version}",
-	"name": "Forge Early Loading Screen: 26.1.2",
-	"description": "26.1.2 support for Forge Early Loading Screen",
+	"name": "Fabric Early Loading Screen: 26.1.2",
+	"description": "26.1.2 support for Fabric Early Loading Screen",
 	"authors": [
+		"XDPXI",
 		"Jab125"
 	],
 	"contributors": [
@@ -12,9 +13,9 @@
 		"MinecraftForge Team"
 	],
 	"contact": {
-		"homepage": "https://modrinth.com/mod/forge-early-loading-screen-fabric",
-		"sources": "https://github.com/Jab125/forge-early-loading-screen",
-		"issues": "https://github.com/Jab125/forge-early-loading-screen/issues"
+		"homepage": "https://modrinth.com/mod/fels",
+		"sources": "https://github.com/XDPXI/fabric-early-loading-screen",
+		"issues": "https://github.com/XDPXI/fabric-early-loading-screen/issues"
 	},
 	"license": "LGPL-2.1-only",
 	"icon": "assets/early-loading-screen-26-1-2/icon.png",
