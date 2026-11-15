@@ -192,9 +192,15 @@ public class DisplayWindow implements ImmediateWindowProvider {
             }
             nextFrameTime = nt + MINFRAMETIME;
             deviceContext.attach();
-            RenderElement.globalAlpha = 0xFF;
-            renderFramebuffer(1f);
-            presentToWindow();
+            DeviceContext.asRenderThread(() -> {
+                RenderElement.globalAlpha = 0xFF;
+                renderFramebuffer(1f);
+                try {
+                    presentToWindow();
+                } catch (com.mojang.renderpearl.api.device.SurfaceException e) {
+                    throw new IllegalStateException(e);
+                }
+            });
         } catch (Throwable t) {
             LOGGER.error("BARF", t);
         } finally {
@@ -213,6 +219,23 @@ public class DisplayWindow implements ImmediateWindowProvider {
         // This thread owns the context now. We should make a note of that.
         deviceContext.attach();
         try {
+            DeviceContext.asRenderThread(() -> initGraphics(mcVersion, forgeVersion));
+        } catch (Throwable t) {
+            LOGGER.error("Crash during early display initialization", t);
+            state = State.INACTIVE;
+            crashElegantly("An error occurred initializing the early display.\n" + t);
+            return;
+        } finally {
+            deviceContext.detach();
+        }
+        this.windowTick = renderScheduler.scheduleAtFixedRate(this::renderThreadFunc, 50, 50, TimeUnit.MILLISECONDS);
+        this.performanceTick = renderScheduler.scheduleAtFixedRate(performanceInfo::update, 0, 500, TimeUnit.MILLISECONDS);
+        // schedule a 50 ms ticker to try and smooth out the rendering
+        renderScheduler.scheduleAtFixedRate(() -> animationTimerTrigger.set(true), 1, 50, TimeUnit.MILLISECONDS);
+    }
+
+    private void initGraphics(final @Nullable String mcVersion, final String forgeVersion) {
+        {
             graphics = new EarlyGraphics(device);
             // we always render to an 854x480 texture and then fit that to the screen - with a scale factor
             this.context = new RenderElement.DisplayContext(854, 480, fbScale, graphics, colourScheme, performanceInfo);
@@ -230,18 +253,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
                 this.elements.add(0, RenderElement.squir(graphics));
 
             this.surface = device.createSurface(window, () -> false);
-        } catch (Throwable t) {
-            LOGGER.error("Crash during early display initialization", t);
-            state = State.INACTIVE;
-            crashElegantly("An error occurred initializing the early display.\n" + t);
-            return;
-        } finally {
-            deviceContext.detach();
         }
-        this.windowTick = renderScheduler.scheduleAtFixedRate(this::renderThreadFunc, 50, 50, TimeUnit.MILLISECONDS);
-        this.performanceTick = renderScheduler.scheduleAtFixedRate(performanceInfo::update, 0, 500, TimeUnit.MILLISECONDS);
-        // schedule a 50 ms ticker to try and smooth out the rendering
-        renderScheduler.scheduleAtFixedRate(() -> animationTimerTrigger.set(true), 1, 50, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -258,7 +270,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
      */
     private void renderFramebuffer(float alpha) {
         var bg = colourScheme.background();
-        graphics.beginPass("Early display", framebuffer.view(), context.scaledWidth(), context.scaledHeight(), bg.redf(), bg.greenf(), bg.bluef(), alpha);
+        graphics.beginPass("Early display", framebuffer.view(), context.scaledWidth(), context.scaledHeight(), bg.redf(), bg.greenf(), bg.bluef(), alpha, true);
         try {
             paintFramebuffer();
         } finally {
@@ -283,7 +295,9 @@ public class DisplayWindow implements ImmediateWindowProvider {
             if (presentTarget != null) graphics.closeTexture(presentTarget);
             presentTarget = graphics.createRenderTarget("Early display window", width, height);
         }
-        surface.acquireNextTexture();
+        if (!surface.isAcquired()) {
+            surface.acquireNextTexture();
+        }
 
         var wscale = ((float) width / this.context.width());
         var hscale = ((float) height / this.context.height());
@@ -294,7 +308,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
         var wbottom = RenderElement.clamp((int) (height * 0.5f + scale * this.context.height()), 0, height);
 
         final var colour = this.context.colourScheme().background();
-        graphics.beginPass("Early display window", presentTarget.view(), width, height, colour.redf(), colour.greenf(), colour.bluef(), 1f);
+        graphics.beginPass("Early display window", presentTarget.view(), width, height, colour.redf(), colour.greenf(), colour.bluef(), 1f, false);
         try (var quad = new SimpleBufferBuilder(4 * SimpleBufferBuilder.STRIDE)) {
             quad.begin();
             QuadHelper.loadQuad(quad, wleft, wright, wtop, wbottom, 0f, 1f, 0f, 1f, 0xFFFFFFFF);
@@ -312,7 +326,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
      */
     public void render(int alpha) {
         RenderElement.globalAlpha = alpha;
-        renderFramebuffer(alpha / 255f);
+        DeviceContext.asRenderThread(() -> renderFramebuffer(alpha / 255f));
     }
 
     /**
@@ -414,7 +428,14 @@ public class DisplayWindow implements ImmediateWindowProvider {
         // The game picks the Vulkan backend only when the user chose it. Then we give up our device and window.
         backend = new GlBackend();
         backend.loadLibrary();
-        device = backend.createDevice(new GpuDebugOptions(0, false, false, false));
+        var createdBackend = backend;
+        device = DeviceContext.asRenderThread(() -> {
+            try {
+                return createdBackend.createDevice(new GpuDebugOptions(0, false, false, false));
+            } catch (BackendCreationException e) {
+                throw new IllegalStateException(e);
+            }
+        });
         deviceContext = new DeviceContext(device);
         // The window is hidden until it is in place
         window = backend.createWindow(TITLE, winWidth, winHeight, SDLVideo.SDL_WINDOW_RESIZABLE | SDLVideo.SDL_WINDOW_HIGH_PIXEL_DENSITY | SDLVideo.SDL_WINDOW_HIDDEN);
@@ -525,15 +546,17 @@ public class DisplayWindow implements ImmediateWindowProvider {
         }
         // The game thread owns the context now
         deviceContext.attach();
-        if (surface != null) {
-            // The game makes a surface for the window itself
-            surface.close();
-            surface = null;
-        }
-        if (presentTarget != null) {
-            graphics.closeTexture(presentTarget);
-            presentTarget = null;
-        }
+        DeviceContext.asRenderThread(() -> {
+            if (surface != null) {
+                // The game makes a surface for the window itself
+                surface.close();
+                surface = null;
+            }
+            if (presentTarget != null) {
+                graphics.closeTexture(presentTarget);
+                presentTarget = null;
+            }
+        });
         state = State.HANDED_OFF;
         return device;
     }
@@ -571,11 +594,13 @@ public class DisplayWindow implements ImmediateWindowProvider {
         state = State.INACTIVE;
         try {
             deviceContext.attach();
-            if (surface != null) surface.close();
-            if (presentTarget != null) graphics.closeTexture(presentTarget);
-            if (framebuffer != null) graphics.closeTexture(framebuffer);
-            if (graphics != null) graphics.close();
-            device.close();
+            DeviceContext.asRenderThread(() -> {
+                if (surface != null) surface.close();
+                if (presentTarget != null) graphics.closeTexture(presentTarget);
+                if (framebuffer != null) graphics.closeTexture(framebuffer);
+                if (graphics != null) graphics.close();
+                device.close();
+            });
             SDLVideo.SDL_DestroyWindow(window);
         } catch (Throwable t) {
             LOGGER.warn("Error while the early display shuts down", t);
@@ -661,8 +686,10 @@ public class DisplayWindow implements ImmediateWindowProvider {
         state = State.INACTIVE;
         // Close the Render Scheduler thread
         renderScheduler.shutdown();
-        graphics.closeTexture(framebuffer);
-        graphics.close();
+        DeviceContext.asRenderThread(() -> {
+            graphics.closeTexture(framebuffer);
+            graphics.close();
+        });
     }
 
     @Override

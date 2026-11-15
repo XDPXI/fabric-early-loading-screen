@@ -53,6 +53,7 @@ public final class EarlyGraphics implements AutoCloseable {
     private RenderPass pass;
     private int viewportWidth;
     private int viewportHeight;
+    private boolean flipY;
 
     public EarlyGraphics(GpuDevice device) {
         this.device = device;
@@ -107,7 +108,7 @@ public final class EarlyGraphics implements AutoCloseable {
      * Create a texture that can be drawn to and read.
      */
     public OwnedTexture createRenderTarget(String label, int width, int height) {
-        var texture = device.createTexture(label, GpuTexture.USAGE_TEXTURE_BINDING | GpuTexture.USAGE_RENDER_ATTACHMENT, GpuFormat.RGBA8_UNORM, width, height, 1, 1);
+        var texture = device.createTexture(label, GpuTexture.USAGE_TEXTURE_BINDING | GpuTexture.USAGE_RENDER_ATTACHMENT | GpuTexture.USAGE_COPY_SRC, GpuFormat.RGBA8_UNORM, width, height, 1, 1);
         var owned = new OwnedTexture(texture, device.createTextureView(texture), nearest);
         ownedTextures.add(new OwnedTexture(texture, owned.view(), null));
         return owned;
@@ -125,13 +126,15 @@ public final class EarlyGraphics implements AutoCloseable {
 
     /**
      * Start a render pass that clears the target and then draws on it.
+     * With flipY the top of the pixel space is the first row of the texture, as the game samples textures.
      */
-    public void beginPass(String label, GpuTextureView target, int width, int height, float red, float green, float blue, float alpha) {
+    public void beginPass(String label, GpuTextureView target, int width, int height, float red, float green, float blue, float alpha, boolean flipY) {
         if (pass != null) {
             throw new IllegalStateException("A render pass is open already");
         }
         this.viewportWidth = width;
         this.viewportHeight = height;
+        this.flipY = flipY;
         this.pass = device.createCommandEncoder().createRenderPass(() -> label, target, Optional.of(new Vector4f(red, green, blue, alpha)));
     }
 
@@ -161,7 +164,8 @@ public final class EarlyGraphics implements AutoCloseable {
         for (int i = 0; i < vertexCount; i++) {
             int base = i * SimpleBufferBuilder.STRIDE;
             vertices.putFloat(base, vertices.getFloat(base) / viewportWidth * 2f - 1f);
-            vertices.putFloat(base + 4, 1f - vertices.getFloat(base + 4) / viewportHeight * 2f);
+            float ny = vertices.getFloat(base + 4) / viewportHeight * 2f;
+            vertices.putFloat(base + 4, flipY ? ny - 1f : 1f - ny);
         }
         var slice = device.createCommandEncoder().transientMemory().uploadGpu(vertices, 16, GpuBuffer.USAGE_VERTEX);
         pass.setPipeline(pipelines.get(type));

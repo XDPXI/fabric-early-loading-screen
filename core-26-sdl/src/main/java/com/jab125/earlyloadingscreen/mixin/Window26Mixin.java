@@ -25,7 +25,7 @@ public abstract class Window26Mixin {
     @Shadow private int windowedY;
 
     // The window keeps the size and position of the early display, so the game does not move it to a monitor
-    @ModifyVariable(method = "<init>", ordinal = 0, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/Window;createWindow(Lcom/mojang/renderpearl/api/device/GpuBackend;IILjava/lang/String;)J", shift = At.Shift.AFTER))
+    @ModifyVariable(method = "<init>(Lcom/mojang/blaze3d/platform/WindowEventHandler;Lcom/mojang/blaze3d/platform/DisplayData;Ljava/lang/String;ZLjava/lang/String;Lcom/mojang/blaze3d/platform/MonitorManager;Lcom/mojang/renderpearl/api/device/GpuBackend;I)V", ordinal = 0, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/Window;createWindow(Lcom/mojang/renderpearl/api/device/GpuBackend;IILjava/lang/String;)J", shift = At.Shift.AFTER))
     private Monitor monitor(Monitor monitor) {
         if (!ImmediateWindowHandler.positionWindow(Optional.ofNullable(monitor), w -> width = this.windowedWidth = w, h -> this.height = this.windowedHeight = h, x -> this.x = this.windowedX = x, y -> this.y = this.windowedY = y)) {
             return monitor;

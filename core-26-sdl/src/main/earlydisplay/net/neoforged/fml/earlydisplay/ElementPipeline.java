@@ -91,6 +91,10 @@ public class ElementPipeline implements AutoCloseable {
     private final Map<RenderType, CompiledRenderPipeline> compiled = new EnumMap<>(RenderType.class);
 
     public void init(GpuDevice device) {
+        DeviceContext.withRenderSystemDevice(device, () -> compile(device));
+    }
+
+    private void compile(GpuDevice device) {
         final ShaderSource source = new ShaderSource() {
             @Override
             public String getShader(Identifier id, ShaderType type) {

@@ -5,10 +5,12 @@
 
 package net.neoforged.fml.earlydisplay;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.renderpearl.api.device.GpuDevice;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.function.Supplier;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.sdl.SDLVideo;
@@ -23,6 +25,61 @@ import org.lwjgl.sdl.SDLVideo;
  * This class is the only place where the early display does that. All drawing uses the RenderPearl API.
  */
 final class DeviceContext {
+    // RenderSystem checks that the OpenGL calls of RenderPearl come from its render thread. Before the game starts
+    // there is none, and the early display draws on its own thread. The game also sets this field once, and
+    // fails if it is set already. Because of this, we set the field for the time of our own calls and put it back.
+    private static final Field RENDER_THREAD;
+    // The shader compiler of RenderPearl reads the device from RenderSystem. The game sets it later.
+    private static final Field RENDER_SYSTEM_DEVICE;
+
+    static {
+        try {
+            RENDER_THREAD = RenderSystem.class.getDeclaredField("renderThread");
+            RENDER_THREAD.setAccessible(true);
+            RENDER_SYSTEM_DEVICE = RenderSystem.class.getDeclaredField("DEVICE");
+            RENDER_SYSTEM_DEVICE.setAccessible(true);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("RenderSystem is not what the early display expects", e);
+        }
+    }
+
+    /** Run something that calls RenderPearl on the current thread, and treat this thread as the render thread. */
+    static <T> T asRenderThread(Supplier<T> action) {
+        try {
+            Thread previous = (Thread) RENDER_THREAD.get(null);
+            RENDER_THREAD.set(null, Thread.currentThread());
+            try {
+                return action.get();
+            } finally {
+                RENDER_THREAD.set(null, previous);
+            }
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** Make RenderSystem.getDevice() return the early display device for the time of the action. */
+    static void withRenderSystemDevice(GpuDevice device, Runnable action) {
+        try {
+            Object previous = RENDER_SYSTEM_DEVICE.get(null);
+            RENDER_SYSTEM_DEVICE.set(null, previous != null ? previous : device);
+            try {
+                action.run();
+            } finally {
+                RENDER_SYSTEM_DEVICE.set(null, previous);
+            }
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    static void asRenderThread(Runnable action) {
+        asRenderThread(() -> {
+            action.run();
+            return null;
+        });
+    }
+
     private final GpuDevice frontend;
     private final Object glDevice;
     private final Method makeCurrent;
