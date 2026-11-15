@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "com.jab125.earlyloadingscreen.mixin",
+  "plugin": "com.jab125.earlyloadingscreen.mixin.MixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "SplashOverlayAccessor",
+    "MainMixin",
+    "MinecraftClientMixin",
+    "Window26Mixin"
+  ]
+}

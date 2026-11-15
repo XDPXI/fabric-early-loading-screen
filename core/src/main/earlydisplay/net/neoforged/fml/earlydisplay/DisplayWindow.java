@@ -323,12 +323,12 @@ public class DisplayWindow implements ImmediateWindowProvider {
         LOGGER.error("ERROR DISPLAY\n" + msgBuilder);
         // we show the display on a new dedicated thread
         Executors.newSingleThreadExecutor().submit(() -> {
-            var res = TinyFileDialogs.tinyfd_messageBox("Minecraft: Fabric", msgBuilder.toString(), "yesno", "error", false);
+            var res = TinyFdCompat.messageBox("Minecraft: Fabric", msgBuilder.toString(), "yesno", "error");
             if (res) {
                 try {
                     Desktop.getDesktop().browse(URI.create(ERROR_URL));
                 } catch (IOException ioe) {
-                    TinyFileDialogs.tinyfd_messageBox("Minecraft: Fabric", "Sadly, we couldn't open your browser.\nVisit " + ERROR_URL, "ok", "error", false);
+                    TinyFdCompat.messageBox("Minecraft: Fabric", "Sadly, we couldn't open your browser.\nVisit " + ERROR_URL, "ok", "error");
                 }
             }
             System.exit(1);
@@ -616,7 +616,8 @@ public class DisplayWindow implements ImmediateWindowProvider {
                     FabricLoader.getInstance().isModLoaded("early-loading-screen-12104")  ||
                     FabricLoader.getInstance().isModLoaded("early-loading-screen-12108")  ||
                     FabricLoader.getInstance().isModLoaded("early-loading-screen-12110")  ||
-                    FabricLoader.getInstance().isModLoaded("early-loading-screen-12111")
+                    FabricLoader.getInstance().isModLoaded("early-loading-screen-12111")  ||
+                    FabricLoader.getInstance().isModLoaded("early-loading-screen-26-1-2")
                                  ) && FabricLoader.getInstance().getModContainer("minecraft").get().getMetadata().getVersion().compareTo(Version.parse("1.21-alpha.24.21.a")) >= 0) ? "com.jab125.earlyloadingscreen.mc12100.NeoForgeLoadingOverlay" : "net.neoforged.neoforge.client.loading.NeoForgeLoadingOverlay");
         } catch (ClassNotFoundException | VersionParsingException e) {
             throw new RuntimeException(e);
