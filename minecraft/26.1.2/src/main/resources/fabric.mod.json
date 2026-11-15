@@ -19,6 +19,10 @@
 	"license": "LGPL-2.1-only",
 	"icon": "assets/early-loading-screen-26-1-2/icon.png",
 	"environment": "client",
+	"accessWidener": "early-loading-screen-26-1-2.accesswidener",
+	"mixins": [
+		"early-loading-screen-26-1-2.mixins.json"
+	],
 	"depends": {
 		"early-loading-screen": "${version}",
 		"minecraft": ">=26.1.2 <26.2-"

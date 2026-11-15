@@ -21,6 +21,8 @@ sourceSets {
             ]
             // Older versions only
             exclude "**/mixin/compat/**"
+            // Provided by each 26.x module
+            exclude "**/mixin/MinecraftClientMixin.java"
             exclude "**/neoforge/client/loading/NeoForgeLoadingOverlay.java"
         }
     }
@@ -38,7 +40,6 @@ dependencies {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/early-loading-screen.accesswidener")
     runs {
         testmodClient {
             client()
@@ -54,6 +55,7 @@ dependencies {
 
     testmodImplementation(sourceSets.main.output)
     include(project(path: ":minecraft:26.1.2"))
+    include(project(path: ":minecraft:26.2"))
 }
 
 testmodClasses.dependsOn classes
@@ -64,7 +66,6 @@ processResources {
     from("$coreDir/resources") {
         // Provided by this project
         exclude "fabric.mod.json"
-        exclude "early-loading-screen.accesswidener"
         exclude "early-loading-screen-1.20.1.mixins.json"
         exclude "early-loading-screen.mixins.json"
     }

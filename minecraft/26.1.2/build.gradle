@@ -62,7 +62,7 @@ loom {
             dependency(dependency0, dependency1)
         }
     }
-    accessWidenerPath = file("../../core-26/src/main/resources/early-loading-screen.accesswidener")
+    accessWidenerPath = file("src/main/resources/early-loading-screen-26-1-2.accesswidener")
 }
 
 dependencies {
