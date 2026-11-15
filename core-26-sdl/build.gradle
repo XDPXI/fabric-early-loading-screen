@@ -1,0 +1,115 @@
+// Same sources as :core, for Minecraft 26.3+, which uses SDL3 and RenderPearl (Blaze3D) instead of GLFW and GL
+apply plugin: "net.fabricmc.fabric-loom"
+
+base {
+    archivesName = project.archives_base_name + "-26-sdl"
+}
+
+repositories {
+    maven {
+        url = "https://maven.minecraftforge.net"
+    }
+}
+
+def coreDir = file("../core/src/main")
+def ownDir = file("src/main")
+def glfwSources = [
+        "mixin/WindowMixin.java",
+        "neoforge/client/loading/NoVizFallback.java",
+        "fml/loading/ImmediateWindowHandler.java",
+        "fml/earlydisplay/DisplayWindow.java",
+        "fml/earlydisplay/EarlyFramebuffer.java",
+        "fml/earlydisplay/ElementShader.java",
+        "fml/earlydisplay/RenderElement.java",
+        "fml/earlydisplay/SimpleBufferBuilder.java",
+        "fml/earlydisplay/SimpleFont.java",
+        "fml/earlydisplay/STBHelper.java",
+        "fml/earlydisplay/TinyFdCompat.java"
+]
+
+sourceSets {
+    main {
+        java {
+            srcDirs += [
+                    "$coreDir/core", "$coreDir/neoforge", "$coreDir/loader", "$coreDir/earlydisplay",
+                    "$ownDir/neoforge", "$ownDir/loader", "$ownDir/earlydisplay"
+            ]
+            // Older versions only
+            exclude "**/mixin/compat/**"
+            // Provided by each 26.x module
+            exclude "**/mixin/MinecraftClientMixin.java"
+            exclude "**/neoforge/client/loading/NeoForgeLoadingOverlay.java"
+            // GLFW and GL versions, replaced by the SDL3 and RenderPearl versions in this project.
+            // Only files from :core are excluded, this project provides classes with the same names.
+            exclude { element ->
+                element.file.toString().replace('\\', '/').contains("/core/src/main/") &&
+                        glfwSources.any { element.relativePath.pathString.endsWith(it) }
+            }
+        }
+    }
+    testmod {
+        java.srcDirs = ["../core/src/testmod/java"]
+        resources.srcDirs = ["../core/src/testmod/resources"]
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+    }
+}
+
+dependencies {
+    implementation include('net.bytebuddy:byte-buddy-agent:1.14.0')
+    implementation include("net.minecraftforge:unsafe:0.9.2")
+}
+
+loom {
+    runs {
+        testmodClient {
+            client()
+            name = "Testmod Client"
+            source sourceSets.testmod
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:26.3"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version_unobf}"
+
+    testmodImplementation(sourceSets.main.output)
+    include(project(path: ":minecraft:26.3"))
+}
+
+testmodClasses.dependsOn classes
+
+processResources {
+    inputs.property "version", project.version
+
+    from("$coreDir/resources") {
+        // Provided by this project
+        // Provided by this project
+        exclude "fabric.mod.json"
+        exclude "early-loading-screen-1.20.1.mixins.json"
+        exclude "early-loading-screen.mixins.json"
+        exclude "early-loading-screen.accesswidener"
+    }
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 25
+}
+
+java {
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+    from("../LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}"}
+    }
+}

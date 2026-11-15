@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "early-loading-screen-26-3",
+	"version": "${version}",
+	"name": "Fabric Early Loading Screen: 26.3",
+	"description": "26.3 support for Fabric Early Loading Screen",
+	"authors": [
+		"XDPXI",
+		"Jab125"
+	],
+	"contributors": [
+		"NeoForged Team",
+		"MinecraftForge Team"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/fels",
+		"sources": "https://github.com/XDPXI/fabric-early-loading-screen",
+		"issues": "https://github.com/XDPXI/fabric-early-loading-screen/issues"
+	},
+	"license": "LGPL-2.1-only",
+	"icon": "assets/early-loading-screen-26-3/icon.png",
+	"environment": "client",
+	"accessWidener": "early-loading-screen-26-3.accesswidener",
+	"mixins": [
+		"early-loading-screen-26-3.mixins.json"
+	],
+	"depends": {
+		"early-loading-screen": "${version}",
+		"minecraft": ">=26.3 <26.4-"
+	},
+	"custom": {
+		"modmenu": {
+			"parent": "early-loading-screen",
+			"links": {
+				"modmenu.discord": "https://discord.gg/s2AtrCEKCn",
+				"modmenu.kofi": "https://ko-fi.com/Jab125/"
+			}
+		}
+	}
+}
