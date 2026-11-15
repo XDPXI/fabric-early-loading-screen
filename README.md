@@ -16,7 +16,28 @@ Classes are patched using Byte Buddy Agent and some classes are forcibly loaded 
 ### `earlydisplay`
 `earlydisplay` is almost identical to FML's `earlydisplay` subproject, with the only changes being the replacement of some "NeoForge" strings with "Fabric", changes to how the `NeoForgeLoadingOverlay` is found, and compatibility with Drippy Loading Screen.
 ###
-In addition, there is a 1.21 subproject that provides a fixed version of `NeoForgeLoadingOverlay` for 24w21a and above.
+In addition, each `minecraft/<version>` subproject provides a `NeoForgeLoadingOverlay` (and, where needed, mixins) for that Minecraft version.
+They are bundled into the main jar with jar-in-jar, and Fabric Loader picks the one whose `minecraft` range matches.
+
+| Subproject | Minecraft |
+|------------|-----------|
+| (none, `core`) | 1.20.1, 1.20.4 |
+| `minecraft/1.21` | 1.21 - 1.21.1 |
+| `minecraft/1.21.2` | 1.21.2 - 1.21.3 |
+| `minecraft/1.21.4` | 1.21.4 |
+| `minecraft/1.21.8` | 1.21.8 |
+| `minecraft/1.21.10` | 1.21.10 |
+| `minecraft/1.21.11` | 1.21.11 |
+| `minecraft/26.1.2` | 26.1.2 |
+| `minecraft/26.2` | 26.2 |
+
+Minecraft 26.1 and newer is not obfuscated, so it needs a different Loom plugin and a different access widener namespace.
+`core-26` is the variant of `core` for those versions. It compiles the same sources and is published as a separate jar (`early-loading-screen-26`).
+Minecraft 26.3 replaced GLFW with SDL3, so it is not supported yet: the early display in `earlydisplay` is built on GLFW.
+
+### Building
+Gradle runs on Java 25 (Loom 1.19 and Minecraft 26.1+ need it). The older subprojects still compile with `release` 17 or 21.
+Run `./gradlew build`. To launch a client with the test mod, use `./gradlew :core:runTestmodClient` (or `:core-26:runTestmodClient`).
 ### Equivalent Version of NeoForge/FancyModLoader
 
 | Mod   | NeoForge               | FancyModLoader         |
