@@ -22,10 +22,26 @@ public class HooksLaInit implements LanguageAdapter {
     }
 
     static {
-        //if ("true".equals(System.getProperty("springboard"))) {
         try {
+            setup();
+        } catch (Throwable t) {
+            failed = true;
+            t.printStackTrace();
+        }
+        System.out.println("ELS: " + (failed ? "Failed to setup hooks" : "Successfully setup hooks"));
+    }
+
+    private static void setup() {
+        {
             //if (true) throw new RuntimeException();
-            ByteBuddyAgent.install();
+            try {
+                ByteBuddyAgent.install();
+            } catch (IllegalStateException e) {
+                // Happens on a JRE without the jdk.attach module (no compatible attachment provider).
+                System.out.println("ELS: Cannot attach instrumentation agent (" + e.getMessage() + "). Use a full JDK to get detailed loading progress.");
+                failed = true;
+                return;
+            }
             try {
                 InputStream resourceAsStream = HooksLaInit.class.getClassLoader().getResourceAsStream("com/jab125/earlyloadingscreen/needed/Hooks.class");
                 byte[] bytes = resourceAsStream.readAllBytes();
@@ -63,10 +79,6 @@ public class HooksLaInit implements LanguageAdapter {
             } catch (UnmodifiableClassException e) {
                 throw new RuntimeException(e);
             }
-        } catch (Throwable t) {
-            failed = true;
-            t.printStackTrace();
         }
-        System.out.println("ELS: " + (failed ? "Failed to setup hooks" : "Successfully setup hooks"));
     }
 }

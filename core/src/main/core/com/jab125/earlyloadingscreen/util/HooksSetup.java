@@ -30,6 +30,11 @@ public class HooksSetup {
         ImmediateWindowHandler.renderTick();
     }
     public static void setupHooks() throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException {
+        if (HooksLaInit.failed) {
+            // Hooks class was never injected into Knot; skip wiring to avoid ClassNotFoundException.
+            StartupMessageManager.addModMessage("Failed to patch hooks. Less information will be shown.");
+            return;
+        }
         Class<Hooks> aClass = (Class<Hooks>) FabricLoader.class.getClassLoader().loadClass("com.jab125.earlyloadingscreen.needed.Hooks");
         Field stringConsumer = aClass.getField("stringConsumer");
         Consumer<String> f = StartupMessageManager::addModMessage;
