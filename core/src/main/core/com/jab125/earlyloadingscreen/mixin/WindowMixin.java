@@ -53,7 +53,8 @@ public abstract class WindowMixin {
         return null;
     }
 
-    @ModifyVariable(method = "<init>", ordinal = 0, at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwMakeContextCurrent(J)V", shift = At.Shift.BEFORE))
+    // The context is not made current in the constructor since 1.21.5
+    @ModifyVariable(method = "<init>", ordinal = 0, require = 0, at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwMakeContextCurrent(J)V", shift = At.Shift.BEFORE))
     Monitor monitor2(Monitor value) {
         if (this.monitor != null) {
             return monitor;
