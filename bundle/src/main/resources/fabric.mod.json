@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "early-loading-screen-bundle",
+	"version": "${version}",
+	"name": "Fabric Early Loading Screen",
+	"description": "A port of the mod (Neo)Forge Early Loading Screen for Fabric. One jar for every supported Minecraft version.",
+	"authors": [
+		"XDPXI",
+		"Jab125"
+	],
+	"contributors": [
+		"NeoForged Team",
+		"MinecraftForge Team"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/fels",
+		"sources": "https://github.com/XDPXI/fabric-early-loading-screen",
+		"issues": "https://github.com/XDPXI/fabric-early-loading-screen/issues"
+	},
+	"license": "LGPL-2.1-only",
+	"icon": "assets/early-loading-screen/icon.png",
+	"environment": "client",
+	"depends": {
+		"fabricloader": ">=0.15.1"
+	},
+	"jars": [
+		{ "file": "META-INF/jars/core-${version}.jar" },
+		{ "file": "META-INF/jars/core-26-${version}.jar" },
+		{ "file": "META-INF/jars/core-26-sdl-${version}.jar" }
+	],
+	"custom": {
+		"modmenu": {
+			"badges": [ "library" ],
+			"links": {
+				"modmenu.discord": "https://discord.gg/s2AtrCEKCn",
+				"modmenu.kofi": "https://ko-fi.com/Jab125/"
+			}
+		}
+	}
+}
