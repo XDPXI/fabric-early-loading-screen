@@ -104,6 +104,7 @@ dependencies {
     include(project(path: ":minecraft:1.21.4"))
     include(project(path: ":minecraft:1.21.8"))
     include(project(path: ":minecraft:1.21.10"))
+    include(project(path: ":minecraft:1.21.11"))
     include(project(path: ":compat:fancymenu3"))
     include(project(path: ":compat:fancymenu2"))
 }

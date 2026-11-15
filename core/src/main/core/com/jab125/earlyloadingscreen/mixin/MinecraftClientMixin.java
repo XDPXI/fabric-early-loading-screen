@@ -1,7 +1,6 @@
 package com.jab125.earlyloadingscreen.mixin;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.ResourceLoadStateTracker;
 import net.minecraft.client.gui.screens.LoadingOverlay;
@@ -50,16 +49,17 @@ public abstract class MinecraftClientMixin {
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @Unique
     private void accept(Optional<Throwable> error) {
-        Util.ifElse(error, (throwable) -> {
-            this.rollbackResourcePacks(throwable, context);
-        }, () -> {
+        // Not net.minecraft.Util#ifElse, it moved in 1.21.11
+        if (error.isPresent()) {
+            this.rollbackResourcePacks(error.get(), context);
+        } else {
             if (SharedConstants.IS_RUNNING_IN_IDE) {
                 this.selfTest();
             }
 
             this.reloadStateTracker.finishReload();
             this.onResourceLoadFinished(context);
-        });
+        }
     }
 
     @Unique
