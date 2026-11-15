@@ -1,6 +1,9 @@
 apply plugin: "fabric-loom"
 
 
+// Project names clash with :minecraft:* (e.g. 26.3), so give each core project its own group
+group = "${project.group}.core"
+
 base {
     archivesName = project.archives_base_name
 }

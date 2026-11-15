@@ -1,5 +1,8 @@
-// Same sources as :core, for Minecraft 26.3+, which uses SDL3 and RenderPearl (Blaze3D) instead of GLFW and GL
+// Same sources as :core:1.20.1, for Minecraft 26.3+, which uses SDL3 and RenderPearl (Blaze3D) instead of GLFW and GL
 apply plugin: "net.fabricmc.fabric-loom"
+
+// Project names clash with :minecraft:* (e.g. 26.3), so give each core project its own group
+group = "${project.group}.core"
 
 base {
     archivesName = project.archives_base_name + "-26-sdl"
@@ -11,7 +14,7 @@ repositories {
     }
 }
 
-def coreDir = file("../core/src/main")
+def coreDir = file("../1.20.1/src/main")
 def ownDir = file("src/main")
 def glfwSources = [
         "mixin/WindowMixin.java",
@@ -40,16 +43,16 @@ sourceSets {
             exclude "**/mixin/MinecraftClientMixin.java"
             exclude "**/neoforge/client/loading/NeoForgeLoadingOverlay.java"
             // GLFW and GL versions, replaced by the SDL3 and RenderPearl versions in this project.
-            // Only files from :core are excluded, this project provides classes with the same names.
+            // Only files from :core:1.20.1 are excluded, this project provides classes with the same names.
             exclude { element ->
-                element.file.toString().replace('\\', '/').contains("/core/src/main/") &&
+                element.file.toString().replace('\\', '/').contains("/core/1.20.1/src/main/") &&
                         glfwSources.any { element.relativePath.pathString.endsWith(it) }
             }
         }
     }
     testmod {
-        java.srcDirs = ["../core/src/testmod/java"]
-        resources.srcDirs = ["../core/src/testmod/resources"]
+        java.srcDirs = ["../1.20.1/src/testmod/java"]
+        resources.srcDirs = ["../1.20.1/src/testmod/resources"]
         compileClasspath += main.compileClasspath
         runtimeClasspath += main.runtimeClasspath
     }

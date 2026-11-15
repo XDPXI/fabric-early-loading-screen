@@ -67,7 +67,7 @@ dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:26.1.2"
     implementation "net.fabricmc:fabric-loader:${project.loader_version_unobf}"
-    implementation(project(":core-26"))
+    implementation(project(":core:26.1"))
 }
 
 processResources {

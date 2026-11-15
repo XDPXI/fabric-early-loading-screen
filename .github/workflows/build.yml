@@ -37,4 +37,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Artifacts
-          path: core/build/libs/
+          path: core/1.20.1/build/libs/

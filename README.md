@@ -21,7 +21,7 @@ They are bundled into the main jar with jar-in-jar, and Fabric Loader picks the 
 
 | Subproject | Minecraft |
 |------------|-----------|
-| (none, `core`) | 1.20.1, 1.20.4 |
+| `core/1.20.1` | 1.20.1, 1.20.4 |
 | `minecraft/1.21` | 1.21 - 1.21.1 |
 | `minecraft/1.21.2` | 1.21.2 - 1.21.3 |
 | `minecraft/1.21.4` | 1.21.4 |
@@ -30,12 +30,12 @@ They are bundled into the main jar with jar-in-jar, and Fabric Loader picks the 
 | `minecraft/1.21.11` | 1.21.11 |
 | `minecraft/26.1.2` | 26.1.2 |
 | `minecraft/26.2` | 26.2 |
-| `minecraft/26.3` | 26.3 (uses `core-26-sdl`) |
+| `minecraft/26.3` | 26.3 (uses `core/26.3`) |
 
 Minecraft 26.1 and newer is not obfuscated, so it needs a different Loom plugin and a different access widener namespace.
-`core-26` is the variant of `core` for those versions. It compiles the same sources and is published as a separate jar (`early-loading-screen-26`).
-Minecraft 26.3 replaced GLFW with SDL3 and moved windows and OpenGL into RenderPearl (Blaze3D) backends, so it uses `core-26-sdl` (jar `early-loading-screen-26-sdl`).
-It shares `core`, `neoforge` and `loader` sources, but has its own `earlydisplay` that creates the window and device with a RenderPearl `GlBackend`, draws only with RenderPearl render passes and pipelines (no direct GL or Vulkan), and hands the same device and window to the game.
+`core/26.1` is the variant of `core/1.20.1` for those versions. It compiles the same sources and is published as a separate jar (`early-loading-screen-26`).
+Minecraft 26.3 replaced GLFW with SDL3 and moved windows and OpenGL into RenderPearl (Blaze3D) backends, so it uses `core/26.3` (jar `early-loading-screen-26-sdl`).
+It shares the `core`, `neoforge` and `loader` sources, but has its own `earlydisplay` that creates the window and device with a RenderPearl `GlBackend`, draws only with RenderPearl render passes and pipelines (no direct GL or Vulkan), and hands the same device and window to the game.
 
 ### Building
 Gradle runs on Java 25 (Loom 1.19 and Minecraft 26.1+ need it). The older subprojects still compile with `release` 17 or 21.

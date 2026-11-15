@@ -1,5 +1,5 @@
 // One jar for every supported Minecraft version.
-// It holds no code. It nests :core (1.20.x - 1.21.x), :core-26 (26.1 - 26.2) and :core-26-sdl (26.3+)
+// It holds no code. It nests :core:1.20.1 (1.20.x - 1.21.x), :core:26.1 (26.1 - 26.2) and :core:26.3 (26.3+)
 // with jar-in-jar. All three use the mod id "early-loading-screen", and Fabric Loader keeps
 // the one whose "minecraft" and "java" ranges match the running game.
 plugins {
@@ -10,14 +10,14 @@ base {
     archivesName = project.archives_base_name + "-all"
 }
 
-evaluationDependsOn(":core")
-evaluationDependsOn(":core-26")
-evaluationDependsOn(":core-26-sdl")
+evaluationDependsOn(":core:1.20.1")
+evaluationDependsOn(":core:26.1")
+evaluationDependsOn(":core:26.3")
 
 def nested = [
-        project(":core").tasks.named("remapJar"),
-        project(":core-26").tasks.named("jar"),
-        project(":core-26-sdl").tasks.named("jar")
+        project(":core:1.20.1").tasks.named("remapJar"),
+        project(":core:26.1").tasks.named("jar"),
+        project(":core:26.3").tasks.named("jar")
 ]
 
 // Nested jars must keep distinct file names. Prefix each one with its project name.
@@ -27,7 +27,7 @@ def collectNested = tasks.register("collectNested", Copy) {
     into nestedDir
     nested.each { t ->
         from(t.flatMap { it.archiveFile }) {
-            rename { "${t.get().project.name}-${project.version}.jar" }
+            rename { "${t.get().project.path.substring(1).replace(":", "-")}-${project.version}.jar" }
         }
     }
 }
