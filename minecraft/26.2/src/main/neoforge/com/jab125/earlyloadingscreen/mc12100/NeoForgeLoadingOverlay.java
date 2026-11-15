@@ -70,7 +70,7 @@ public class NeoForgeLoadingOverlay extends LoadingOverlay {
     }
 
     @Override
-    public void extractRenderState(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float partialTick) {
         long millis = Util.getMillis();
         float fadeouttimer = this.fadeOutStart > -1L ? (float) (millis - this.fadeOutStart) / 1000.0F : -1.0F;
         this.currentProgress = Mth.clamp(this.currentProgress * 0.95F + this.reload.getActualProgress() * 0.05F, 0.0F, 1.0F);
@@ -104,6 +104,14 @@ public class NeoForgeLoadingOverlay extends LoadingOverlay {
         int texWidth = twidth * this.displayWindow.context().scale();
         int texHeight = theight * this.displayWindow.context().scale();
 
+        // Some mods pass a graphics object whose pose stack is null. Rebuild a valid one from its render state.
+        if (graphics.pose() == null) {
+            graphics = rebuildGraphics(graphics);
+            if (graphics == null) {
+                return;
+            }
+        }
+
         // Draw above the screen below
         graphics.nextStratum();
         // The early display uses window pixels, not GUI-scaled units
@@ -123,6 +131,20 @@ public class NeoForgeLoadingOverlay extends LoadingOverlay {
                 this.minecraft.getTextureManager().release(LOADING_OVERLAY_TEXTURE_ID);
                 this.displayWindow.close();
             });
+        }
+    }
+
+    private GuiGraphicsExtractor rebuildGraphics(final GuiGraphicsExtractor broken) {
+        try {
+            var field = GuiGraphicsExtractor.class.getDeclaredField("guiRenderState");
+            field.setAccessible(true);
+            var state = (net.minecraft.client.renderer.state.gui.GuiRenderState) field.get(broken);
+            if (state == null) {
+                return null;
+            }
+            return new GuiGraphicsExtractor(this.minecraft, state, 0, 0);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return null;
         }
     }
 
