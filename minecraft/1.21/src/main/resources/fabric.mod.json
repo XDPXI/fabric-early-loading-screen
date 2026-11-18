@@ -20,6 +20,11 @@
 	"license": "LGPL-2.1-only",
 	"icon": "assets/early-loading-screen-12100/icon.png",
 	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"com.jab125.earlyloadingscreen.config.ELSClient"
+		]
+	},
 	"depends": {
 		"early-loading-screen": "${version}",
 		"minecraft": ">=1.21- <1.21.2-"

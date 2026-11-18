@@ -1,0 +1,30 @@
+{
+	"early-loading-screen.midnightconfig.title": "Early Loading Screen",
+
+	"early-loading-screen.midnightconfig.category.appearance": "Appearance",
+	"early-loading-screen.midnightconfig.category.elements": "Elements",
+
+	"early-loading-screen.midnightconfig.windowTitle": "Window title",
+	"early-loading-screen.midnightconfig.windowTitle.tooltip": "Title of the window while the game loads.",
+	"early-loading-screen.midnightconfig.useGameBackground": "Use game background",
+	"early-loading-screen.midnightconfig.useGameBackground.tooltip": "On: the background follows the game (red, or black with the dark Mojang Studios background option). Off: use the background color below.",
+	"early-loading-screen.midnightconfig.backgroundColor": "Background color",
+	"early-loading-screen.midnightconfig.backgroundColor.tooltip": "Only used when \"Use game background\" is off.",
+	"early-loading-screen.midnightconfig.textColor": "Text color",
+	"early-loading-screen.midnightconfig.textColor.tooltip": "Color of the text and of the bar borders.",
+	"early-loading-screen.midnightconfig.progressBarColor": "Progress bar color",
+	"early-loading-screen.midnightconfig.progressBarColor.tooltip": "Fill color of the loading progress bars.",
+	"early-loading-screen.midnightconfig.dynamicMemoryBarColor": "Memory bar: color by use",
+	"early-loading-screen.midnightconfig.dynamicMemoryBarColor.tooltip": "On: the memory bar goes from green to red as memory use grows. Off: use the memory bar color below.",
+	"early-loading-screen.midnightconfig.memoryBarColor": "Memory bar color",
+	"early-loading-screen.midnightconfig.memoryBarColor.tooltip": "Only used when \"Memory bar: color by use\" is off.",
+
+	"early-loading-screen.midnightconfig.showFox": "Show running fox",
+	"early-loading-screen.midnightconfig.showStatus": "Show status (bottom left)",
+	"early-loading-screen.midnightconfig.showStatus.tooltip": "The loading messages at the bottom left of the window.",
+	"early-loading-screen.midnightconfig.showVersion": "Show Fabric and Minecraft version",
+	"early-loading-screen.midnightconfig.showMemoryBar": "Show memory bar",
+	"early-loading-screen.midnightconfig.showHeap": "Show heap use",
+	"early-loading-screen.midnightconfig.showOffHeap": "Show off-heap use",
+	"early-loading-screen.midnightconfig.showCpu": "Show CPU use"
+}

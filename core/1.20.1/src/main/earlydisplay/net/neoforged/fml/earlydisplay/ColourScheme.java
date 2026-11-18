@@ -5,25 +5,10 @@
 
 package net.neoforged.fml.earlydisplay;
 
-public enum ColourScheme {
-    RED(new Colour(239, 50, 61), new Colour(255, 255, 255)),
-    BLACK(new Colour(0, 0, 0), new Colour(255, 255, 255));
-
-    private final Colour background;
-    private final Colour foreground;
-
-    ColourScheme(final Colour background, final Colour foreground) {
-        this.background = background;
-        this.foreground = foreground;
-    }
-
-    public Colour background() {
-        return background;
-    }
-
-    public Colour foreground() {
-        return foreground;
-    }
+// A record, not an enum, so EarlyConfig can make custom colours
+public record ColourScheme(Colour background, Colour foreground) {
+    public static final ColourScheme RED = new ColourScheme(new Colour(239, 50, 61), new Colour(255, 255, 255));
+    public static final ColourScheme BLACK = new ColourScheme(new Colour(0, 0, 0), new Colour(255, 255, 255));
 
     public record Colour(int red, int green, int blue) {
         public float redf() {

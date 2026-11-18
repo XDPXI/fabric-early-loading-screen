@@ -180,11 +180,13 @@ public class RenderElement {
         var barSpacing = font.lineSpacing() - font.descent() + BAR_HEIGHT;
         var y = 250 * context.scale() + cnt * barSpacing;
         var colour = context.colourScheme.foreground().packedint(alpha);
+        var fillColourSetting = EarlyConfig.progressBarColour();
+        var fillColour = fillColourSetting == null ? colour : fillColourSetting.packedint(alpha);
         Renderer bar;
         if (pm.steps() == 0) {
-            bar = progressBar(ctx -> new int[] { (ctx.scaledWidth() - BAR_WIDTH * ctx.scale()) / 2, y + font.lineSpacing() - font.descent(), BAR_WIDTH * ctx.scale() }, f -> colour, frame -> indeterminateBar(frame, cnt == 0));
+            bar = progressBar(ctx -> new int[] { (ctx.scaledWidth() - BAR_WIDTH * ctx.scale()) / 2, y + font.lineSpacing() - font.descent(), BAR_WIDTH * ctx.scale() }, f -> fillColour, frame -> indeterminateBar(frame, cnt == 0));
         } else {
-            bar = progressBar(ctx -> new int[] { (ctx.scaledWidth() - BAR_WIDTH * ctx.scale()) / 2, y + font.lineSpacing() - font.descent(), BAR_WIDTH * ctx.scale() }, f -> colour, f -> new float[] { 0f, pm.progress() });
+            bar = progressBar(ctx -> new int[] { (ctx.scaledWidth() - BAR_WIDTH * ctx.scale()) / 2, y + font.lineSpacing() - font.descent(), BAR_WIDTH * ctx.scale() }, f -> fillColour, f -> new float[] { 0f, pm.progress() });
         }
         Renderer label = (bb, ctx, frame) -> renderText(font, text((ctx.scaledWidth() - BAR_WIDTH * ctx.scale()) / 2, y, pm.label().getText(), colour), bb, ctx);
         return bar.then(label);
@@ -202,10 +204,15 @@ public class RenderElement {
     private static void memoryInfo(SimpleFont font, final SimpleBufferBuilder buffer, final DisplayContext context, final int frameNumber) {
         var y = 10 * context.scale();
         PerformanceInfo pi = context.performance();
-        final int colour = hsvToRGB((1.0f - (float) Math.pow(pi.memory(), 1.5f)) / 3f, 1.0f, 0.5f);
-        var bar = progressBar(ctx -> new int[] { (ctx.scaledWidth() - BAR_WIDTH * ctx.scale()) / 2, y, BAR_WIDTH * ctx.scale() }, f -> colour, f -> new float[] { 0f, pi.memory() });
+        var memoryColour = EarlyConfig.memoryBarColour();
+        final int colour = memoryColour != null ? memoryColour.packedint(0xFF) : hsvToRGB((1.0f - (float) Math.pow(pi.memory(), 1.5f)) / 3f, 1.0f, 0.5f);
+        Renderer bar = EarlyConfig.showMemoryBar()
+                ? progressBar(ctx -> new int[] { (ctx.scaledWidth() - BAR_WIDTH * ctx.scale()) / 2, y, BAR_WIDTH * ctx.scale() }, f -> colour, f -> new float[] { 0f, pi.memory() })
+                : (bb, ctx, frame) -> {};
         var width = font.stringWidth(pi.text());
-        Renderer label = (bb, ctx, frame) -> renderText(font, text(ctx.scaledWidth() / 2 - width / 2, y + 18, pi.text(), context.colourScheme.foreground().packedint(globalAlpha)), bb, ctx);
+        Renderer label = pi.text().isEmpty()
+                ? (bb, ctx, frame) -> {}
+                : (bb, ctx, frame) -> renderText(font, text(ctx.scaledWidth() / 2 - width / 2, y + (EarlyConfig.showMemoryBar() ? 18 : 0), pi.text(), context.colourScheme.foreground().packedint(globalAlpha)), bb, ctx);
         bar.then(label).accept(buffer, context, frameNumber);
     }
 

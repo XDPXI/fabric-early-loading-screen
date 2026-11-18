@@ -77,7 +77,6 @@ import org.slf4j.LoggerFactory;
  */
 public class DisplayWindow implements ImmediateWindowProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger("EARLYDISPLAY");
-    private static final String TITLE = "Minecraft: Fabric Loading...";
     private final AtomicBoolean animationTimerTrigger = new AtomicBoolean(true);
 
     private enum State {
@@ -161,6 +160,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
                 this.colourScheme = ColourScheme.RED; // default to red colourscheme
             }
         }
+        this.colourScheme = EarlyConfig.colourScheme(this.colourScheme);
         this.maximized = parsed.has(maximizedopt) || FMLConfig.getBoolConfigValue(FMLConfig.ConfigValue.EARLY_WINDOW_MAXIMIZED);
 
         var forgeVersion = parsed.valueOf(forgeversionopt);
@@ -241,12 +241,12 @@ public class DisplayWindow implements ImmediateWindowProvider {
             this.context = new RenderElement.DisplayContext(854, 480, fbScale, graphics, colourScheme, performanceInfo);
             this.framebuffer = graphics.createRenderTarget("Early display framebuffer", context.scaledWidth(), context.scaledHeight());
             SimpleFont font = new SimpleFont(graphics, "Monocraft.ttf", fbScale, 200000);
-            this.elements = new ArrayList<>(Arrays.asList(
-                    RenderElement.fox(graphics, font),
-                    RenderElement.logMessageOverlay(font),
-                    RenderElement.forgeVersionOverlay(font, mcVersion + "-" + forgeVersion.split("-")[0]),
-                    RenderElement.performanceBar(font),
-                    RenderElement.progressBars(font)));
+            this.elements = new ArrayList<>();
+            if (EarlyConfig.showFox()) this.elements.add(RenderElement.fox(graphics, font));
+            if (EarlyConfig.showStatus()) this.elements.add(RenderElement.logMessageOverlay(font));
+            if (EarlyConfig.showVersion()) this.elements.add(RenderElement.forgeVersionOverlay(font, mcVersion + "-" + forgeVersion.split("-")[0]));
+            this.elements.add(RenderElement.performanceBar(font));
+            this.elements.add(RenderElement.progressBars(font));
 
             var date = Calendar.getInstance();
             if (FMLConfig.getBoolConfigValue(FMLConfig.ConfigValue.EARLY_WINDOW_SQUIR) || (date.get(Calendar.MONTH) == Calendar.APRIL && date.get(Calendar.DAY_OF_MONTH) == 1))
@@ -445,7 +445,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
         });
         deviceContext = new DeviceContext(device);
         // The window is hidden until it is in place
-        window = backend.createWindow(TITLE, winWidth, winHeight, SDLVideo.SDL_WINDOW_RESIZABLE | SDLVideo.SDL_WINDOW_HIGH_PIXEL_DENSITY | SDLVideo.SDL_WINDOW_HIDDEN);
+        window = backend.createWindow(EarlyConfig.windowTitle(), winWidth, winHeight, SDLVideo.SDL_WINDOW_RESIZABLE | SDLVideo.SDL_WINDOW_HIGH_PIXEL_DENSITY | SDLVideo.SDL_WINDOW_HIDDEN);
         if (window == 0L) {
             throw new IllegalStateException("Unable to make a window: " + SDLError.SDL_GetError());
         }

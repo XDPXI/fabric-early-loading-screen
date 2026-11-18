@@ -151,6 +151,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
                 this.colourScheme = ColourScheme.RED; // default to red colourscheme
             }
         }
+        this.colourScheme = EarlyConfig.colourScheme(this.colourScheme);
         this.maximized = parsed.has(maximizedopt) || FMLConfig.getBoolConfigValue(FMLConfig.ConfigValue.EARLY_WINDOW_MAXIMIZED);
 
         var forgeVersion = parsed.valueOf(forgeversionopt);
@@ -234,12 +235,12 @@ public class DisplayWindow implements ImmediateWindowProvider {
             LOGGER.error("Crash during font initialization", t);
             crashElegantly("An error occurred initializing a font for rendering. " + t.getMessage());
         }
-        this.elements = new ArrayList<>(Arrays.asList(
-                RenderElement.fox(font),
-                RenderElement.logMessageOverlay(font),
-                RenderElement.forgeVersionOverlay(font, mcVersion + "-" + forgeVersion.split("-")[0]),
-                RenderElement.performanceBar(font),
-                RenderElement.progressBars(font)));
+        this.elements = new ArrayList<>();
+        if (EarlyConfig.showFox()) this.elements.add(RenderElement.fox(font));
+        if (EarlyConfig.showStatus()) this.elements.add(RenderElement.logMessageOverlay(font));
+        if (EarlyConfig.showVersion()) this.elements.add(RenderElement.forgeVersionOverlay(font, mcVersion + "-" + forgeVersion.split("-")[0]));
+        this.elements.add(RenderElement.performanceBar(font));
+        this.elements.add(RenderElement.progressBars(font));
 
         var date = Calendar.getInstance();
         if (FMLConfig.getBoolConfigValue(FMLConfig.ConfigValue.EARLY_WINDOW_SQUIR) || (date.get(Calendar.MONTH) == Calendar.APRIL && date.get(Calendar.DAY_OF_MONTH) == 1))
@@ -411,7 +412,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, GL_VERSIONS[versidx][1]);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-            window = glfwCreateWindow(winWidth, winHeight, "Minecraft: Fabric Loading...", 0L, 0L);
+            window = glfwCreateWindow(winWidth, winHeight, EarlyConfig.windowTitle(), 0L, 0L);
             var erridx = versidx;
             handleLastGLFWError((error, description) -> lastGLError[erridx] = String.format("Trying %d.%d: GLFW error: [0x%X]%s", GL_VERSIONS[erridx][0], GL_VERSIONS[erridx][1], error, description));
             if (lastGLError[versidx] != null) {

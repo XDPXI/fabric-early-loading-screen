@@ -37,6 +37,14 @@ Minecraft 26.1 and newer is not obfuscated, so it needs a different Loom plugin 
 Minecraft 26.3 replaced GLFW with SDL3 and moved windows and OpenGL into RenderPearl (Blaze3D) backends, so it uses `core/26.3` (jar `early-loading-screen-26-sdl`).
 It shares the `core`, `neoforge` and `loader` sources, but has its own `earlydisplay` that creates the window and device with a RenderPearl `GlBackend`, draws only with RenderPearl render passes and pipelines (no direct GL or Vulkan), and hands the same device and window to the game.
 
+### Config
+Settings are stored in `config/early-loading-screen.json`.
+Each `minecraft/<version>` subproject nests [MidnightLib](https://modrinth.com/mod/midnightlib) and adds a config screen. Open it from Mod Menu.
+It sets the background, text, progress bar and memory bar colors, the window title, and which elements show (fox, status, version, memory bar, heap, off-heap, CPU).
+The early display starts before mods load, so it reads the JSON file itself (`EarlyConfig`). The screen is `minecraft/shared/.../ELSConfig.java`, shared by every `minecraft/<version>` subproject.
+MidnightLib needs Fabric API (`fabric-resource-loader-v0`). It has no build for 24w33a, 24w34a, 1.20.x or older, so those versions have no screen. They still read the file.
+Changes apply at the next game start.
+
 ### Building
 Gradle runs on Java 25 (Loom 1.19 and Minecraft 26.1+ need it). The older subprojects still compile with `release` 17 or 21.
 Run `./gradlew build`. To launch a client with the test mod, use `./gradlew :core:runTestmodClient` (or `:core-26:runTestmodClient`).

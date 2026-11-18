@@ -38,7 +38,10 @@ repositories {
 sourceSets {
     main {
         java {
-            srcDirs += ["src/main/neoforge"]
+            srcDirs += ["src/main/neoforge", "../shared/src/main/java"]
+        }
+        resources {
+            srcDirs += ["../shared/src/main/resources"]
         }
     }
 }
@@ -64,6 +67,8 @@ loom {
 }
 
 dependencies {
+    // Config screen, nested in this jar
+    modImplementation include("maven.modrinth:midnightlib:1.10.0+1.21.1-fabric")
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:1.21-pre2"
     mappings loom.officialMojangMappings()

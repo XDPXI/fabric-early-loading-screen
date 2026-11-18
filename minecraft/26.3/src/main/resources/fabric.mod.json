@@ -24,6 +24,11 @@
 	"mixins": [
 		"early-loading-screen-26-3.mixins.json"
 	],
+	"entrypoints": {
+		"client": [
+			"com.jab125.earlyloadingscreen.config.ELSClient"
+		]
+	},
 	"depends": {
 		"early-loading-screen": "${version}",
 		"minecraft": ">=26.3 <26.4-"
