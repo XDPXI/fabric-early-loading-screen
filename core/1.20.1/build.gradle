@@ -5,7 +5,7 @@ apply plugin: "fabric-loom"
 group = "${project.group}.core"
 
 base {
-    archivesName = project.archives_base_name
+    archivesName = project.archives_base_name + "-core-1.20.1"
 }
 
 repositories {

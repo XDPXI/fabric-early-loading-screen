@@ -2,6 +2,7 @@ package com.jab125.earlyloadingscreen.util;
 
 import com.jab125.earlyloadingscreen.special.FabricLoaderImplTransformer;
 import com.jab125.earlyloadingscreen.special.MixinProcessorTransformer;
+import com.jab125.earlyloadingscreen.special.QuiltEntrypointUtilsTransformer;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.LanguageAdapterException;
@@ -29,6 +30,10 @@ public class HooksLaInit implements LanguageAdapter {
             t.printStackTrace();
         }
         System.out.println("ELS: " + (failed ? "Failed to setup hooks" : "Successfully setup hooks"));
+    }
+
+    private static boolean isQuilt() {
+        return HooksLaInit.class.getClassLoader().getResource(QuiltEntrypointUtilsTransformer.TARGET + ".class") != null;
     }
 
     private static void setup() {
@@ -73,6 +78,19 @@ public class HooksLaInit implements LanguageAdapter {
                 throw new RuntimeException(t);
             }
             ByteBuddyAgent.getInstrumentation().addTransformer(new MixinProcessorTransformer(), true);
+            if (isQuilt()) {
+                // Quilt's FabricLoaderImpl is a shim, so patch Quilt's own entrypoint loop
+                ByteBuddyAgent.getInstrumentation().addTransformer(new QuiltEntrypointUtilsTransformer(), true);
+                for (Class<?> loaded : ByteBuddyAgent.getInstrumentation().getAllLoadedClasses()) {
+                    if (!QuiltEntrypointUtilsTransformer.TARGET.replace('/', '.').equals(loaded.getName())) continue;
+                    try {
+                        ByteBuddyAgent.getInstrumentation().retransformClasses(loaded);
+                    } catch (UnmodifiableClassException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                return;
+            }
             ByteBuddyAgent.getInstrumentation().addTransformer(new FabricLoaderImplTransformer(), true);
             try {
                 ByteBuddyAgent.getInstrumentation().retransformClasses(FabricLoaderImpl.class);

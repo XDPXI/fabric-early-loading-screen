@@ -7,7 +7,7 @@ plugins {
 }
 
 base {
-    archivesName = project.archives_base_name + "-all"
+    archivesName = project.archives_base_name
 }
 
 evaluationDependsOn(":core:1.20.1")

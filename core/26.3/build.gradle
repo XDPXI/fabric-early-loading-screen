@@ -5,7 +5,7 @@ apply plugin: "net.fabricmc.fabric-loom"
 group = "${project.group}.core"
 
 base {
-    archivesName = project.archives_base_name + "-26-sdl"
+    archivesName = project.archives_base_name + "-core-26.3"
 }
 
 repositories {

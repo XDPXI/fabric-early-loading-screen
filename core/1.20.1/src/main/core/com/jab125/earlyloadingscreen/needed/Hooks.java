@@ -19,8 +19,13 @@ public class Hooks {
     private static boolean hookSetup;
     // Early display loads game classes, so it must wait until mods add their mixin configs in preLaunch
     private static boolean preLaunchRunning;
+    // Quilt calls the key pre_launch
+    private static boolean isPreLaunch(String s) {
+        return "preLaunch".equals(s) || "pre_launch".equals(s);
+    }
+
     public static void entrypoint(String s) {
-        if ("preLaunch".equals(s)) {
+        if (isPreLaunch(s)) {
             preLaunchRunning = true;
         }
         setupHooks();
@@ -38,7 +43,7 @@ public class Hooks {
     }
 
     public static void entrypointDone(String s) {
-        if ("preLaunch".equals(s)) {
+        if (isPreLaunch(s)) {
             preLaunchRunning = false;
             setupHooks();
         }
@@ -99,6 +104,44 @@ public class Hooks {
             throw new RuntimeException(e);
         }
         // meterDelegate.update(container.getProvider().getMetadata().getName());
+    }
+
+    // Quilt containers are not Fabric types, so these take Object
+    public static void ranQuilt(Collection<?> entrypointContainers, Object container) {
+        setupHooks();
+        MeterDelegate meterDelegate = map.get(entrypointContainers);
+        try {
+            meterDelegate.update(quiltModName(container));
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void ran2Quilt(Collection<?> entrypointContainers, Object container) {
+        setupHooks();
+        MeterDelegate meterDelegate = map.get(entrypointContainers);
+        try {
+            meterDelegate.finished(quiltModName(container));
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String quiltModName(Object container) throws ReflectiveOperationException {
+        Object provider = call(container, "getProvider");
+        Object metadata = call(provider, "metadata");
+        return (String) call(metadata, "name");
+    }
+
+    private static Object call(Object target, String name) throws ReflectiveOperationException {
+        Method method;
+        try {
+            method = target.getClass().getMethod(name);
+        } catch (NoSuchMethodException e) {
+            method = target.getClass().getDeclaredMethod(name);
+        }
+        method.setAccessible(true);
+        return method.invoke(target);
     }
 
     public static class MeterDelegate {

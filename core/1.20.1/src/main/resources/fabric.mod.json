@@ -50,7 +50,6 @@
 		]
 	},
 	"breaks": {
-		"quilt_loader": "*",
 		"springboard": "*"
 	},
 	"custom": {

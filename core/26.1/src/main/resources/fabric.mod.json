@@ -41,7 +41,6 @@
 		"java": ">=25"
 	},
 	"breaks": {
-		"quilt_loader": "*",
 		"springboard": "*"
 	},
 	"custom": {

@@ -6,6 +6,7 @@ The mod is separated into 4 parts: `core`, `neoforge`, `loader`, and `earlydispl
 ### `core`
 `core` contains all classes under `com.jab125.earlyloadingscreen` and is responsible for patching Fabric Loader to get verbose information about entrypoints, as well as handling the window handoff. It is also responsible for initializing the early display. 
 Classes are patched using Byte Buddy Agent and some classes are forcibly loaded with the help of `net.minecraftforge:unsafe`.
+On Quilt Loader, `FabricLoaderImpl` is only a shim, so `QuiltEntrypointUtilsTransformer` patches Quilt's own `EntrypointUtils` instead. Quilt names the pre-launch key `pre_launch`.
 ### `neoforge`
 `neoforge` contains all classes from NeoForge that are required to make the transition between the early display and Minecraft. All the classes here are identical to their NeoForge counterparts.
 ### `loader`
