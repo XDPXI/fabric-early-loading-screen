@@ -1,6 +1,8 @@
 package com.jab125.earlyloadingscreen;
 
 //import net.fabricmc.devlaunchinjector.Main;
+import com.jab125.earlyloadingscreen.util.HooksSetup;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.Bootstrap;
 import net.neoforged.fml.loading.BackgroundWaiter;
 import net.neoforged.fml.loading.ImmediateWindowHandler;
@@ -10,6 +12,8 @@ public class Loader {
 
     // Not done in the mixin, some Mixin versions fail to attach lambdas in redirect handlers
     public static void bootstrapAndTick() {
+        // No-op if the early display already started
+        HooksSetup.init(FabricLoader.getInstance().getLaunchArguments(true));
         BackgroundWaiter.runAndTick(Bootstrap::bootStrap, progressWindowTick);
     }
 

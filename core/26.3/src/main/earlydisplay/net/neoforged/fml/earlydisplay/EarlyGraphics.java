@@ -16,6 +16,7 @@ import com.mojang.renderpearl.api.textures.FilterMode;
 import com.mojang.renderpearl.api.textures.GpuSampler;
 import com.mojang.renderpearl.api.textures.GpuTexture;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +84,42 @@ public final class EarlyGraphics implements AutoCloseable {
         }
     }
 
+    // Mods that hook RenderPass.setPipeline can load game classes, so draw nothing before Bootstrap
+    private static final boolean PASS_IS_HOOKED = isPassHooked();
+    private static Field bootstrapped;
+
+    private static boolean isPassHooked() {
+        try {
+            for (var method : com.mojang.renderpearl.frontend.FrontendRenderPass.class.getDeclaredMethods()) {
+                // Mixin injector name
+                if (method.getName().startsWith("handler$")) {
+                    return true;
+                }
+            }
+        } catch (LinkageError | RuntimeException e) {
+            // Unknown, assume hooked
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean safeToDraw() {
+        if (!PASS_IS_HOOKED) {
+            return true;
+        }
+        try {
+            if (bootstrapped == null) {
+                var field = net.minecraft.server.Bootstrap.class.getDeclaredField("isBootstrapped");
+                field.setAccessible(true);
+                bootstrapped = field;
+            }
+            // Hooks may also read the game instance, which exists slightly after Bootstrap
+            return bootstrapped.getBoolean(null) && net.minecraft.client.Minecraft.getInstance() != null;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return true;
+        }
+    }
+
     public GpuDevice device() {
         return device;
     }
@@ -124,6 +161,13 @@ public final class EarlyGraphics implements AutoCloseable {
         return device.createCommandEncoder();
     }
 
+    private static volatile boolean creatingPass;
+
+    // True while the early display creates a render pass, game state does not exist yet
+    public static boolean isCreatingPass() {
+        return creatingPass;
+    }
+
     /**
      * Start a render pass that clears the target and then draws on it.
      * With flipY the top of the pixel space is the first row of the texture, as the game samples textures.
@@ -135,7 +179,12 @@ public final class EarlyGraphics implements AutoCloseable {
         this.viewportWidth = width;
         this.viewportHeight = height;
         this.flipY = flipY;
-        this.pass = device.createCommandEncoder().createRenderPass(() -> label, target, Optional.of(new Vector4f(red, green, blue, alpha)));
+        creatingPass = true;
+        try {
+            this.pass = device.createCommandEncoder().createRenderPass(() -> label, target, Optional.of(new Vector4f(red, green, blue, alpha)));
+        } finally {
+            creatingPass = false;
+        }
     }
 
     public void endPass() {
@@ -154,7 +203,7 @@ public final class EarlyGraphics implements AutoCloseable {
         if (pass == null) {
             throw new IllegalStateException("No render pass is open");
         }
-        if (vertexCount == 0) {
+        if (vertexCount == 0 || !safeToDraw()) {
             return;
         }
         if (vertexCount % 4 != 0 || vertexCount / 4 > MAX_QUADS) {

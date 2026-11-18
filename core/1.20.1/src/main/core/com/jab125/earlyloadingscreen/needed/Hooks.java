@@ -17,13 +17,18 @@ public class Hooks {
     public static BiConsumer<MeterDelegate, String> stringBiConsumer2 = (s, b) -> {};
     private static final HashMap<Collection<EntrypointContainer<?>>, MeterDelegate> map = new HashMap<>();
     private static boolean hookSetup;
+    // Early display loads game classes, so it must wait until mods add their mixin configs in preLaunch
+    private static boolean preLaunchRunning;
     public static void entrypoint(String s) {
+        if ("preLaunch".equals(s)) {
+            preLaunchRunning = true;
+        }
         setupHooks();
         stringConsumer.accept("Running entrypoint: " + s);
     }
 
     public static void mixinInit() {
-        setupHooks();
+        // Not starting the early display here, Mixin holds its lock and loaded classes would get no mixins
         stringConsumer.accept("Setting up mixin configs.");
     }
 
@@ -32,8 +37,15 @@ public class Hooks {
         //stringConsumer.accept("Finished setting up mixin configs.");
     }
 
+    public static void entrypointDone(String s) {
+        if ("preLaunch".equals(s)) {
+            preLaunchRunning = false;
+            setupHooks();
+        }
+    }
+
     private static void setupHooks() {
-        if (hookSetup) { return; }
+        if (hookSetup || preLaunchRunning) { return; }
         try {
             System.out.println("Setting up hooks");
             FabricLoader.getInstance().getEntrypoints("early-loading-screen-hook-provider", Runnable.class).get(0).run();

@@ -54,6 +54,14 @@ public class FabricLoaderImplTransformer implements ClassFileTransformer {
                 list.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "com/jab125/earlyloadingscreen/needed/Hooks", "ran2", "(Ljava/util/Collection;Lnet/fabricmc/loader/api/entrypoint/EntrypointContainer;)V"));
                 methodNode.instructions.insert(r, list);
             }
+            { // Tell the hooks this entrypoint key finished
+                for (AbstractInsnNode insn : Arrays.stream(methodNode.instructions.toArray()).filter(a -> a.getOpcode() == Opcodes.RETURN).toList()) {
+                    InsnList list = new InsnList();
+                    list.add(new VarInsnNode(Opcodes.ALOAD, 1));
+                    list.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "com/jab125/earlyloadingscreen/needed/Hooks", "entrypointDone", "(Ljava/lang/String;)V"));
+                    methodNode.instructions.insertBefore(insn, list);
+                }
+            }
         }
 
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES + ClassWriter.COMPUTE_MAXS);

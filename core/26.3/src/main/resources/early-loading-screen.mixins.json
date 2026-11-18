@@ -10,6 +10,7 @@
     "SplashOverlayAccessor",
     "MainMixin",
     "Window26Mixin",
-    "MinecraftDeviceMixin"
+    "MinecraftDeviceMixin",
+    "RrlsOverlayHelperMixin"
   ]
 }

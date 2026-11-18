@@ -1,6 +1,5 @@
 package com.jab125.earlyloadingscreen.util;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -11,13 +10,9 @@ import java.util.Set;
 
 public class HooksMixinInit implements IMixinConfigPlugin {
 
-    public void run() {
-        HooksSetup.init(FabricLoader.getInstance().getLaunchArguments(true));
-    }
-
     @Override
     public void onLoad(String mixinPackage) {
-        run();
+        // Early display starts from the preLaunch hook or MainMixin, not here (Mixin lock)
     }
 
     @Override

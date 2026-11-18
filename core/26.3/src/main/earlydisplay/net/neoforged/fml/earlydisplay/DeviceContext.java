@@ -43,6 +43,23 @@ final class DeviceContext {
         }
     }
 
+    // Give Sodium default options, it throws "Config not yet available" before the game starts
+    static void prepareSodium() {
+        try {
+            Class<?> mod = Class.forName("net.caffeinemc.mods.sodium.client.SodiumClientMod", true, DeviceContext.class.getClassLoader());
+            Field options = mod.getDeclaredField("OPTIONS");
+            options.setAccessible(true);
+            if (options.get(null) == null) {
+                Class<?> optionsClass = Class.forName("net.caffeinemc.mods.sodium.client.gui.SodiumOptions", true, DeviceContext.class.getClassLoader());
+                options.set(null, optionsClass.getMethod("defaults").invoke(null));
+            }
+        } catch (ClassNotFoundException ignored) {
+            // No Sodium
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+            // Device creation reports the real problem
+        }
+    }
+
     /** Run something that calls RenderPearl on the current thread, and treat this thread as the render thread. */
     static <T> T asRenderThread(Supplier<T> action) {
         try {

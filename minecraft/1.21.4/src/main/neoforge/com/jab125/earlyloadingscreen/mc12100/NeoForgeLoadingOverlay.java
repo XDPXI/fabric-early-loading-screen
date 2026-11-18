@@ -74,7 +74,7 @@ public class NeoForgeLoadingOverlay extends LoadingOverlay {
         var colour = this.displayWindow.context().colourScheme().background();
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, fade);
         if (fadeouttimer >= 1.0F) {
-            if (this.minecraft.screen != null) {
+            if (this.minecraft.screen != null && graphics.pose() != null) {
                 this.minecraft.screen.render(graphics, 0, 0, partialTick);
             }
             displayWindow.render(0xff);

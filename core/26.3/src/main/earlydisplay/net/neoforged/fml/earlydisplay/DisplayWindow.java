@@ -415,6 +415,12 @@ public class DisplayWindow implements ImmediateWindowProvider {
         } catch (IOException e) {
             throw new IllegalStateException("Could not load the native libraries", e);
         }
+        // Destroy our Vulkan state, the game's VK.create fails when it already exists
+        try {
+            org.lwjgl.vulkan.VK.destroy();
+        } catch (Throwable ignored) {
+            // Vulkan was never created
+        }
         SDLHints.SDL_SetHint("SDL_NO_SIGNAL_HANDLERS", "1");
         if (!SDLInit.SDL_Init(SDLInit.SDL_INIT_VIDEO)) {
             throw new IllegalStateException("Unable to initialize SDL: " + SDLError.SDL_GetError());
@@ -426,6 +432,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
 
         // The early display needs OpenGL, because it must hand its device to the game.
         // The game picks the Vulkan backend only when the user chose it. Then we give up our device and window.
+        DeviceContext.prepareSodium();
         backend = new GlBackend();
         backend.loadLibrary();
         var createdBackend = backend;
